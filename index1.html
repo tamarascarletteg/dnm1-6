@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        *,
+        ::after,
+        ::before {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            color: #222;
+            background: #eee url('fondo.webp') center center no-repeat;
+            background-size: cover;
+            font-family: Helvetica, sans-serif;
+            font-size: 0.9rem;
+        }
+        h1 {
+            margin-bottom: 1rem;
+            font-size: calc(1.5rem + 1vw);
+        }
+        #app {
+            width: min(80vw, 500px);
+            padding: 2rem 2rem 0;
+            background: #fff;
+            box-shadow: 0 0 4px rgba(100, 100, 100, 0.1);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 0.8rem;
+        }
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            color: #888;
+            border-color: #ddd;
+            border-radius: 0.4rem;
+            box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
+        }
+        #resultado {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1 id="lugar">Rusia</h1>
+        <select name="select" id="selector" disabled>
+            <option>Selecciona una ciudad…</option>
+        </select>
+        <div id="resultado"></div>
+    </div>
+    <!-- Agrega un div para la imagen de fondo -->
+    <div id="background-image"></div>
+    <!-- Esto es sin bibliotecas -->
+    <script>
+        const titulo = document.querySelector("#lugar");
+        const seleccionado = document.querySelector("#selector");
+        const respuesta = document.querySelector("#resultado");
+        // Creando la función cities
+        async function cities() {
+            seleccionado.disabled = false;
+            const primero = await fetch("https://raw.githubusercontent.com/tamarascarletteg/dnm1-6/main/relevant_russian_cities.json");
+            const ciudades = await primero.json();
+            console.log(ciudades);
+            ciudades.forEach((c) => (seleccionado.innerHTML += `<option>${c.name}</option>`));
+        }
+        // Iniciando la función cities
+        cities().catch((error) => console.error(error));
+        // Creando la función weather
+        async function weather(ciudad) {
+            const segundo = await fetch("https://api.openweathermap.org/data/2.5/weather?q=" + ciudad + ",ru&units=metric&appid=9b53bc5631240bf0416512779c283a27&lang=es");
+            const tiempo = await segundo.json();
+            console.log(tiempo);
+
+            // Cambiar el color de fondo del contenedor #app a rosa (pink)
+            document.querySelector("#app").style.background = "pink";
+
+            respuesta.innerHTML = `<div><img src="https://openweathermap.org/img/wn/${tiempo.weather[0].icon}.png"></div><div>Temperatura: <strong>${tiempo.main.temp}</strong> ºC</div><div>Humidity: <strong>${tiempo.main.humidity}</strong>%</div><div>Visibility: <strong>${tiempo.visibility}</strong></div>`;
+        }
+        seleccionado.addEventListener("change", function (event) {
+            let valor = seleccionado.value;
+            console.log(valor);
+            titulo.innerHTML = valor;
+            // Iniciando la función weather
+            weather(valor).catch((error) => console.error(error));
+        });
+    </script>
+</body>
+</html>
